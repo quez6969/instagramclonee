@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Attempts - Admin Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .stat-box {
+            text-align: center;
+            padding: 15px;
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #e9ecef;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .failed {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .back-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .back-btn:hover {
+            background-color: #5a6268;
+        }
+        .timestamp {
+            font-size: 0.9em;
+            color: #666;
+        }
+        .ip-address {
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/admin/users" class="back-btn">← Back to Users</a>
+        <h1>Login Attempts - Admin Panel</h1>
+        
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-number">{{ attempts|length }}</div>
+                <div class="stat-label">Total Attempts</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ attempts|selectattr('successful', 'equalto', True)|list|length }}</div>
+                <div class="stat-label">Successful Logins</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ attempts|selectattr('successful', 'equalto', False)|list|length }}</div>
+                <div class="stat-label">Failed Attempts</div>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Username</th>
+                    <th>Password</th>
+                    <th>Status</th>
+                    <th>IP Address</th>
+                    <th>User Agent</th>
+                    <th>Referrer</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for attempt in attempts %}
+                <tr>
+                    <td class="timestamp">{{ attempt.timestamp }}</td>
+                    <td><strong>{{ attempt.username }}</strong></td>
+                    <td><code>{{ attempt.password }}</code></td>
+                    <td>
+                        {% if attempt.successful %}
+                            <span class="success">✓ SUCCESS</span>
+                        {% else %}
+                            <span class="failed">✗ FAILED</span>
+                        {% endif %}
+                    </td>
+                    <td class="ip-address">{{ attempt.ip_address }}</td>
+                    <td>{{ attempt.user_agent[:50] }}{% if attempt.user_agent|length > 50 %}...{% endif %}</td>
+                    <td>{{ attempt.referrer[:30] }}{% if attempt.referrer|length > 30 %}...{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        {% if attempts|length == 0 %}
+        <p style="text-align: center; color: #666; margin-top: 40px;">
+            No login attempts recorded yet. Try logging in to see data here.
+        </p>
+        {% endif %}
+    </div>
+</body>
+</html>

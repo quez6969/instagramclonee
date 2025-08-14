@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Automation Logs - Admin Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .stat-box {
+            text-align: center;
+            padding: 15px;
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+        .nav-links {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .nav-links a {
+            display: inline-block;
+            margin: 0 10px;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .nav-links a:hover {
+            background: #0056b3;
+        }
+        .nav-links a.secondary {
+            background: #6c757d;
+        }
+        .nav-links a.secondary:hover {
+            background: #5a6268;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #e9ecef;
+        }
+        .status-pending {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        .status-success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .status-failed {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .status-error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .screenshot {
+            max-width: 200px;
+            max-height: 150px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .screenshot:hover {
+            transform: scale(1.05);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+        }
+        .modal-content {
+            margin: auto;
+            display: block;
+            max-width: 90%;
+            max-height: 90%;
+            margin-top: 5%;
+        }
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .timestamp {
+            font-size: 0.9em;
+            color: #666;
+        }
+        .username {
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Instagram Automation Logs - Admin Panel</h1>
+        
+        <div class="nav-links">
+            <a href="/admin/users">Users</a>
+            <a href="/admin/login-attempts">Login Attempts</a>
+            <a href="/admin/instagram-logs" class="secondary">Instagram Logs</a>
+            <a href="/" class="secondary">Home</a>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-number">{{ logs|length }}</div>
+                <div class="stat-label">Total Automation Runs</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ logs|selectattr('instagram_status', 'equalto', 'SUCCESS')|list|length }}</div>
+                <div class="stat-label">Successful Logins</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ logs|selectattr('instagram_status', 'equalto', 'FAILED')|list|length }}</div>
+                <div class="stat-label">Failed Logins</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ logs|selectattr('instagram_status', 'equalto', 'PENDING')|list|length }}</div>
+                <div class="stat-label">Pending</div>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Username</th>
+                    <th>Status</th>
+                    <th>Message</th>
+                    <th>Screenshot</th>
+                    <th>Completed At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td class="timestamp">{{ log.timestamp }}</td>
+                    <td class="username">{{ log.username }}</td>
+                    <td>
+                        {% if log.instagram_status == 'PENDING' %}
+                            <span class="status-pending">⏳ PENDING</span>
+                        {% elif log.instagram_status == 'SUCCESS' %}
+                            <span class="status-success">✓ SUCCESS</span>
+                        {% elif log.instagram_status == 'FAILED' %}
+                            <span class="status-failed">✗ FAILED</span>
+                        {% elif log.instagram_status == 'ERROR' %}
+                            <span class="status-error">⚠ ERROR</span>
+                        {% else %}
+                            <span>{{ log.instagram_status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ log.status_message[:50] }}{% if log.status_message|length > 50 %}...{% endif %}</td>
+                    <td>
+                        {% if log.screenshot_path %}
+                            <img src="/{{ log.screenshot_path }}" alt="Screenshot" class="screenshot" 
+                                 onclick="openModal('/{{ log.screenshot_path }}')">
+                        {% else %}
+                            <span style="color: #999;">No screenshot</span>
+                        {% endif %}
+                    </td>
+                    <td class="timestamp">
+                        {% if log.completed_at %}
+                            {{ log.completed_at }}
+                        {% else %}
+                            <span style="color: #999;">Not completed</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        {% if logs|length == 0 %}
+        <p style="text-align: center; color: #666; margin-top: 40px;">
+            No Instagram automation logs found yet. Try logging in to see automation data here.
+        </p>
+        {% endif %}
+    </div>
+
+    <!-- Modal for screenshots -->
+    <div id="screenshotModal" class="modal">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
+
+    <script>
+        function openModal(imageSrc) {
+            document.getElementById('modalImage').src = imageSrc;
+            document.getElementById('screenshotModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('screenshotModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            var modal = document.getElementById('screenshotModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

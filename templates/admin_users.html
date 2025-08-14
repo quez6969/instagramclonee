@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Users</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/loginstyle.css') }}">
+  <style>
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    th { background: #f2f2f2; text-align: left; }
+    .admin-links { margin: 20px 0; text-align: center; }
+    .admin-links a { 
+      display: inline-block; 
+      margin: 0 10px; 
+      padding: 10px 20px; 
+      background: #007bff; 
+      color: white; 
+      text-decoration: none; 
+      border-radius: 5px; 
+    }
+    .admin-links a:hover { background: #0056b3; }
+    .admin-links a.secondary { background: #6c757d; }
+    .admin-links a.secondary:hover { background: #5a6268; }
+  </style>
+  </head>
+<body>
+  <div class="container">
+    <div class="box">
+      <h2>Registered Users</h2>
+      
+      <div class="admin-links">
+        <a href="{{ url_for('admin_login_attempts') }}">View Login Attempts</a>
+        <a href="{{ url_for('index') }}" class="secondary">Back to Home</a>
+      </div>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for u in users %}
+          <tr>
+            <td>{{ u._id }}</td>
+            <td>{{ u.username }}</td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="2">No users found</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>
+
+
